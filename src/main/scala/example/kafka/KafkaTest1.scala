@@ -8,6 +8,7 @@ import kafka.producer.{Partitioner, KeyedMessage, ProducerConfig}
 import kafka.consumer.{ConsumerConfig, Consumer}
 import kafka.utils.{VerifiableProperties, ZkUtils}
 
+import scala.collection.JavaConversions._
 import scala.util.Random
 
 /**
@@ -119,14 +120,14 @@ object KafkaTest1 extends App {
     val zkUtils = new ZkUtils(zkClient, zkConnection, false)
     val topics = AdminUtils.fetchAllTopicConfigs(zkUtils).map{case (topicName, topicProps) => topicName}.toSet
     val topicsMeta = AdminUtils.fetchTopicMetadataFromZk(topics,zkUtils)
-    topicsMeta.foreach{tm => {
-      val pmd = tm.partitionsMetadata.map{pm => {
-        s"partitionId:[${pm.partitionId}] leader:[${pm.leader}] isr:[${pm.isr}] replicas:[${pm.replicas}]"
-      }}.mkString("\n")
+    topicsMeta.foreach{tm =>
+      val pmd = tm.partitionMetadata().map{pm =>
+        s"partitionId:[${pm.partition()}] leader:[${pm.leader}] isr:[${pm.isr}] replicas:[${pm.replicas}]"
+      }.mkString("\n")
       println(s"### topic: [${tm.topic}] ")
       println(s"### partitionsProps:")
-      println(s"[${pmd}]")
-    }}
+      println(s"[$pmd]")
+    }
   }
 
   //通过api创建topic
